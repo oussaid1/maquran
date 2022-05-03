@@ -25,36 +25,43 @@ class _PageScreenState extends State<PageScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: CustomScrollView(
-          shrinkWrap: true,
-          slivers: <Widget>[
-            // SliverAppBar(
-            //   leading: const BackButton(
-            //       //  color: appProvider.isDark ? Colors.white : Colors.black54,
-            //       ),
-            //   backgroundColor: Colors.white,
-            //   pinned: true,
-            //   floating: true,
-            //   expandedHeight: height * 0.27,
-            //   flexibleSpace: AppBar(),
-            // ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  List<QPage> pages = QPage.fromJson();
-                  return Container(
-                    padding: const EdgeInsets.all(4),
-                    child: Image.asset(
-                      pages[index].image!,
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
-
-                childCount: 6, //pages.length,
+        body: ListView.separated(
+          itemBuilder: (context, index) {
+            List<QPage> pages = QPage.fromJson();
+            return Container(
+              padding: const EdgeInsets.all(4),
+              child: Image.asset(
+                pages[index].image!,
+                fit: BoxFit.cover,
               ),
-            ),
-          ],
+            );
+          },
+
+          separatorBuilder: (ctx, index) {
+            return Container(
+              margin: const EdgeInsets.all(4),
+              height: height * 0.06,
+              width: width,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(1),
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.black,
+                  width: 0.5,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'صفحة رقم ${index + 1}',
+                  style: TextStyle(
+                    fontSize: height * 0.03,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          },
+          itemCount: QPage.fromJson().length, //pages.length,
         ),
       ),
     );

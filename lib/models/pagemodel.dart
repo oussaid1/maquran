@@ -19,6 +19,12 @@ class QPage {
   static List<Map<String, dynamic>> get qJson {
     return [
       {
+        'id': 1,
+        'title': 'الصفحة الأولى',
+        'content': '',
+        'image': "assets/images/quran/pages/cover.jpg"
+      },
+      {
         "id": 3,
         "title": "p1",
         "content": "content1",
