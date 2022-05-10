@@ -8,7 +8,6 @@ import 'package:sqflite/sqflite.dart';
 class MDatabase {
   Database? _database;
   static const _databaseName = "qurantxtdb.db";
-
   static const _tableName = "table";
   Future<Database> _init() async {
     var databasesPath = await getDatabasesPath();
@@ -19,7 +18,6 @@ class MDatabase {
 
     if (!exists) {
       // Should happen only the first time you launch your application
-      print("Creating new copy from asset");
 
       // Make sure the parent directory exists
       try {
@@ -34,7 +32,7 @@ class MDatabase {
       // Write and flush the bytes written
       await File(path).writeAsBytes(bytes, flush: true);
     } else {
-      print("Opening existing database");
+      //print("Opening existing database");
     }
 // open the database
     return await openDatabase(path, readOnly: true);
@@ -46,7 +44,7 @@ class MDatabase {
     return _database!;
   }
 
-  Future<String> _getDatabasePath() async {
+  Future<String> getDatabasePath() async {
     var databasesPath = await getDatabasesPath();
     return join(databasesPath, _databaseName);
   }
