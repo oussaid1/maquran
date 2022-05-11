@@ -1,14 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'components.dart';
-import 'models/userconf_model.dart';
 import 'ui/reading/home_page.dart';
 
-void main() {
-  var path = Directory.current.path;
-  Hive..init(path);
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final directory = await getApplicationDocumentsDirectory();
+  Hive.init(directory.path);
 
   runApp(const MyApp());
 }

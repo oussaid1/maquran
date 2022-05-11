@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:maquran/models/pagemodel.dart';
 
 import '../../components.dart';
-import '../../models/userconf_model.dart';
 import '../../notifiers/user_conf_notifier.dart';
 
 class PageScreen extends ConsumerStatefulWidget {
@@ -17,41 +16,75 @@ class PageScreen extends ConsumerStatefulWidget {
 
 class _PageScreenState extends ConsumerState<PageScreen>
     with TickerProviderStateMixin {
-  AnimationController? _animationController;
-  UserConf userConf = UserConf.defaultUserConf();
+  // AnimationController? _animationController;
+  //UserConf userConf = UserConf.defaultUserConf();
+  int _currentPage = 1;
+  List<QPage> pages = QPage.fromJson();
+  late PageController _pageController;
+  late UserConfPageIndex userConfPageIndex;
+// load the user conf page index
+  loadIndex() async {
+    var box = await Hive.openBox('userconf');
+    setState(() {
+      _currentPage = box.get('readingIndex') ?? 1;
+      _scrollToIndex(_currentPage);
+    });
+    print('_currentPage: $_currentPage');
+  }
+
+// save the user conf page index
+  saveIndex() async {
+    var box = await Hive.openBox('userconf');
+    box.put('readingIndex', _currentPage);
+    box.close();
+    print('saved: $_currentPage');
+  }
 
   @override
   void initState() {
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-      animationBehavior: AnimationBehavior.preserve,
+    // _animationController = AnimationController(
+    //   vsync: this,
+    //   duration: const Duration(milliseconds: 1000),
+    //   animationBehavior: AnimationBehavior.preserve,
+    // );
+    // userConfPageIndex = UserConfPageIndex();
+    // userConfPageIndex.init();
+    _pageController = PageController(
+      initialPage: _currentPage,
+      //keepPage: true,
+      // viewportFraction: 0.9,
     );
+    // _currentPage = userConfPageIndex.userReadingIndex;
+    loadIndex();
+    print('_currentPage: $_currentPage');
 
     super.initState();
   }
 
   @override
   void dispose() {
-    _animationController?.dispose();
+    //  _animationController?.dispose();
     // Provider.of<UserConfNotifier>(context, listen: false)
     //     .save(userConf: userConf.copyWith(pageIndex: _currentPage));
+    saveIndex();
     super.dispose();
   }
 
-  bool _bannerVisible = true;
+//  bool _bannerVisible = true;
   bool _isFullScreen = false;
+  bool _shouldStop = false;
 
   void _scrollToIndex(int index) {
-    _pageController.animateTo(index.toDouble(),
-        duration: const Duration(milliseconds: 100), curve: Curves.easeIn);
+    // _pageController.animateTo(index.toDouble(),
+    //     duration: const Duration(milliseconds: 100), curve: Curves.easeIn);
+    _pageController.jumpToPage(index);
   }
 
 // scroll to next page
   void nextPage() {
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 1000),
-      curve: Curves.easeIn,
+      duration: const Duration(milliseconds: 20000),
+      curve: Curves.slowMiddle,
     );
   }
 
@@ -59,23 +92,33 @@ class _PageScreenState extends ConsumerState<PageScreen>
   void previousPage() {
     _pageController.previousPage(
       duration: const Duration(milliseconds: 100),
-      curve: Curves.easeIn,
+      curve: Curves.slowMiddle,
     );
   }
 
-  List<QPage> pages = QPage.fromJson();
-  final PageController _pageController = PageController(
-    initialPage: 0,
-    keepPage: true,
-    viewportFraction: 0.9,
-  );
-  late int _currentPage = 0;
+  // auto play next page
+  _autoPlay() async {
+    nextPage();
+    while (_shouldStop) {
+      await Future.delayed(const Duration(milliseconds: 5000));
+      _autoPlay();
+    }
+  }
+
+// stop auto play
+  _stopAutoPlay() {
+    // _animationController?.stop();
+    setState(() {
+      _shouldStop = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    userConf = ref.read(userConfNotifierProvider).userConf;
-    //  _currentPage = userConf.pageIndex ?? 0;
+
+    //  _scrollToIndex(readingIndex);
     return Scaffold(
       backgroundColor: Colors.white,
       endDrawer: SizedBox(
@@ -95,7 +138,8 @@ class _PageScreenState extends ConsumerState<PageScreen>
                         icon: const Icon(Icons.plus_one_outlined),
                       ),
                       IconButton(
-                          onPressed: () {}, icon: const Icon(Icons.play_arrow)),
+                          onPressed: _autoPlay,
+                          icon: const Icon(Icons.play_arrow)),
                       IconButton(
                           onPressed: () {},
                           icon: const Icon(Icons.exposure_minus_1_outlined)),
@@ -105,11 +149,8 @@ class _PageScreenState extends ConsumerState<PageScreen>
                       ),
                       const SizedBox(height: 60),
                       IconButton(
-                        onPressed: () {
-                          ref
-                              .read(userConfNotifierProvider)
-                              .save(userConf: userConf.copyWith(pageIndex: 2));
-                        },
+                        highlightColor: Colors.red,
+                        onPressed: _stopAutoPlay,
                         icon: const Icon(Icons.save),
                       ),
                     ],
@@ -120,21 +161,23 @@ class _PageScreenState extends ConsumerState<PageScreen>
           ),
         ),
       ),
-      body: Builder(builder: (context) {
-        return PageView(
+      body: PageView.builder(
+
           //  physics: const NeverScrollableScrollPhysics(),
-          onPageChanged: (index) {
-            setState(() {
-              _currentPage = index;
-            });
-            // ref
-            //     .read(userConfNotifierProvider)
-            //     .save(userConf: userConf.copyWith(pageIndex: index));
-          },
+          // onPageChanged: (index) {
+          //   setState(() {
+          //     _currentPage = index;
+          //   });
+          //   // ref
+          //   //     .read(userConfNotifierProvider)
+          //   //     .save(userConf: userConf.copyWith(pageIndex: index));
+          // },
           allowImplicitScrolling: true,
           controller: _pageController,
+          itemCount: pages.length,
           scrollDirection: Axis.vertical,
-          children: pages.map((page) {
+          itemBuilder: (context, index) {
+            _currentPage = index;
             return GestureDetector(
               onDoubleTap: () {
                 setState(() {
@@ -183,26 +226,31 @@ class _PageScreenState extends ConsumerState<PageScreen>
                 //   ),
                 // );
               },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                width: width,
-                height: height,
-                child: Image.asset(
-                  pages[_currentPage].image!,
-                  fit: BoxFit.fill,
-                ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      width: width,
+                      height: height,
+                      child: Image.asset(
+                        pages[_currentPage].image!,
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                  _buildPageSeparator(width, height, _currentPage),
+                ],
               ),
             );
-          }).toList(),
-        );
-      }),
+          }),
     );
   }
 
   Container _buildPageSeparator(double height, double width, int index) {
     return Container(
       margin: const EdgeInsets.all(4),
-      height: height * 0.06,
+      height: height * 0.12,
       width: width,
       decoration: const BoxDecoration(
         color: Colors.white,

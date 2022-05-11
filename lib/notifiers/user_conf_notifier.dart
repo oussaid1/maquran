@@ -1,46 +1,69 @@
-import 'package:flutter/material.dart';
-import 'package:riverpod/riverpod.dart';
-
 import '../components.dart';
-import '../models/userconf_model.dart';
 
-final userConfNotifierProvider = Provider<UserConfNotifier>((ref) {
-  return UserConfNotifier();
-});
+// final userConfNotifierProvider = Provider<UserConfNotifier>((ref) {
+//   return UserConfNotifier();
+// });
 
-class UserConfNotifier extends ChangeNotifier {
-  UserConfNotifier() {
-    _userConf = UserConf.defaultUserConf();
-    _init();
+class UserConfPageIndex {
+  UserConfPageIndex() {
+    _readingIndex = 0;
+    init();
   }
 
-  late UserConf _userConf;
+  late int _readingIndex;
 
-  UserConf get userConf => _userConf;
+  int get userReadingIndex => _readingIndex;
 
-  set userConf(UserConf userConf) {
-    _userConf = userConf;
-    notifyListeners();
+  set readingIndex(int readingIndex) {
+    _readingIndex = readingIndex;
   }
 
-  void _init() async {
+  init() async {
     var box = await Hive.openBox('userconf');
-    _userConf = box.getAt(1);
-
-    notifyListeners();
+    _readingIndex = box.get('readingIndex') ?? 0;
   }
 
   // // dispose the box
-  void save({UserConf? userConf}) async {
+  save({int? readingIndex}) async {
     var box = await Hive.openBox('userconf');
-    box.putAt(1, userConf ?? _userConf);
+    box.put('readingIndex', readingIndex ?? _readingIndex);
     box.close();
   }
-
-  @override
-  void dispose() {
-    save();
-    super.dispose();
-    // dispose();
-  }
 }
+
+// class UserConfNotifier extends ChangeNotifier {
+//   UserConfNotifier() {
+//     _userConf = UserConf.defaultUserConf();
+//     _init();
+//   }
+
+//   late UserConf _userConf;
+
+//   UserConf get userConf => _userConf;
+
+//   set userConf(UserConf userConf) {
+//     _userConf = userConf;
+//     notifyListeners();
+//   }
+
+//   void _init() async {
+//     var box = await Hive.openBox('userconf');
+//     _userConf = box.getAt(1);
+
+//     notifyListeners();
+//   }
+
+//   // // dispose the box
+//   void save({UserConf? userConf}) async {
+//     var box = await Hive.openBox('userconf');
+//     box.putAt(0, userConf ?? _userConf);
+//     box.close();
+//   }
+
+//   @override
+//   void dispose() {
+//     save();
+//     super.dispose();
+//     // dispose();
+//   }
+// }

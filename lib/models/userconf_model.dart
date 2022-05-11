@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:maquran/components.dart';
 
 @HiveType(typeId: 1)
-class UserConf extends HiveType {
+class UserConf {
   @HiveField(0, defaultValue: 0)
   String? userId = '0';
   @HiveField(1, defaultValue: 0)
@@ -26,7 +26,7 @@ class UserConf extends HiveType {
     this.fontSize,
     this.readingStyle,
     this.bookmarks,
-  }) : super(typeId: 1);
+  });
 // a static default UserConf
   static UserConf defaultUserConf() {
     return UserConf(
